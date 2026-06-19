@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin · Marchese Golosinas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&display=swap" rel="stylesheet">
+    <style>
+        /* ── TOKENS ─────────────────────────────────────────── */
+        :root {
+            --bg:           #0F0E0C;
+            --surface:      #1A1916;
+            --surface-2:    #222018;
+            --surface-3:    #2B2926;
+            --border:       #2E2C28;
+            --border-light: #3D3B36;
+            --amber:        #E8920A;
+            --amber-dim:    #C47B08;
+            --amber-glow:   rgba(232,146,10,0.12);
+            --amber-light:  #FFF0D6;
+            --green:        #22C55E;
+            --green-dim:    rgba(34,197,94,0.12);
+            --red:          #EF4444;
+            --red-dim:      rgba(239,68,68,0.12);
+            --blue:         #3B82F6;
+            --blue-dim:     rgba(59,130,246,0.12);
+            --text:         #F0EDE8;
+            --text-mid:     #A8A39B;
+            --text-muted:   #6B6760;
+            --shadow:       0 4px 24px rgba(0,0,0,0.5);
+            --radius:       10px;
+            --radius-sm:    6px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ── SIDEBAR ────────────────────────────────────────── */
+        .sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0;
+            height: 100vh;
+            z-index: 40;
+            overflow: hidden;
+            transition: width .22s cubic-bezier(.4,0,.2,1);
+        }
+        .sidebar.collapsed {
+            width: 56px;
+        }
+
+        /* Labels en una sola línea: si pudieran wrappear, durante la transición de
+           ancho (56px -> 240px) ocupan 2 líneas por un instante y eso hace que el
+           nav interno (overflow-y:auto) se desborde y muestre un scroll fantasma */
+        .admin-pill, .nav-section-label,
+        .nav-btn-label, .nav-badge, .sidebar-footer-label {
+            white-space: nowrap;
+        }
+
+        /* Hide text labels when collapsed */
+        .sidebar.collapsed .admin-pill,
+        .sidebar.collapsed .nav-section-label,
+        .sidebar.collapsed .nav-btn-label,
+        .sidebar.collapsed .nav-badge,
+        .sidebar.collapsed .sidebar-footer-label { 
+            display: none; 
+        }
+        .sidebar.collapsed .sidebar-logo { padding: 1.1rem 0; display: flex; justify-content: center; }
+        .sidebar.collapsed .sidebar-logo a { justify-content: center; }
+        .sidebar.collapsed .logo-img { height: 22px; }
+        .sidebar.collapsed nav.sidebar-nav { padding: 0.75rem 0.5rem; align-items: center; }
+        .sidebar.collapsed .nav-btn { justify-content: center; padding: 0.6rem; gap: 0; }
+        .sidebar.collapsed .nav-btn svg { opacity: 0.8; }
+        .sidebar.collapsed .nav-btn.active svg { opacity: 1; }
+        .sidebar.collapsed .nav-btn.active::before { display: none; }
+        .sidebar.collapsed .sidebar-footer { padding: 1rem 0.5rem; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+        .sidebar-logo {
+            padding: 1.5rem 1.25rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-logo a {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .logo-img {
+            height: 30px;
+            width: auto;
+            display: block;
+            transition: height .22s cubic-bezier(.4,0,.2,1);
+        }
+        .admin-pill {
+            margin: 0.6rem 1.25rem 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--amber-glow);
+            border: 1px solid rgba(232,146,10,0.25);
+            border-radius: 99px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--amber);
+        }
+        .admin-pill-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+
+        nav.sidebar-nav {
+            padding: 1rem 0.75rem;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+        .nav-section-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 0.75rem 0.5rem 0.4rem;
+        }
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border-radius: var(--radius-sm);
+            background: none;
+            border: none;
+            color: var(--text-mid);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: left;
+            transition: all .15s;
+            position: relative;
+        }
+        .nav-btn:hover { background: var(--surface-2); color: var(--text); }
+        .nav-btn.active {
+            background: var(--amber-glow);
+            color: var(--amber);
+            font-weight: 600;
+        }
+        .nav-btn.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 50%;
+            transform: translateY(-50%);
+            width: 3px; height: 60%;
+            background: var(--amber);
+            border-radius: 0 3px 3px 0;
+        }
+        .nav-btn svg { flex-shrink: 0; opacity: 0.7; }
+        .nav-btn.active svg { opacity: 1; }
+        .nav-badge {
+            margin-left: auto;
+            background: var(--red);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 99px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 4px;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        #sidebarToggleBtn .toggle-icon { transition: transform .22s; }
+        .sidebar.collapsed #sidebarToggleBtn .toggle-icon { transform: rotate(180deg); }
+
+        /* ── MAIN ───────────────────────────────────────────── */
+        .main-wrap {
+            margin-left: 240px;
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: margin-left .22s cubic-bezier(.4,0,.2,1);
+        }
+        body.sidebar-collapsed .main-wrap { margin-left: 56px; }
+
+        /* ── TOPBAR ─────────────────────────────────────────── */
+        .topbar {
+            position: sticky; top: 0; z-index: 30;
+            background: rgba(15,14,12,0.85);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-title {
+            font-family: 'Fraunces', serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+        .topbar-actions { display: flex; align-items: center; gap: 0.75rem; }
+
+        /* ── CONTENT ────────────────────────────────────────── */
+        .page-content {
+            padding: 2rem;
+            flex: 1;
+        }
+        .section-panel { display: none; }
+        .section-panel.active { display: block; }
+
+        /* ── STATS ROW ──────────────────────────────────────── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .stat-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .stat-value {
+            font-family: 'Fraunces', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            line-height: 1;
+        }
+        .stat-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+        .stat-card.amber .stat-value { color: var(--amber); }
+        .stat-card.green .stat-value { color: var(--green); }
+        .stat-card.red .stat-value { color: var(--red); }
+
+        /* ── TOOLBAR (sobre tablas) ─────────────────────────── */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+        .toolbar-search {
+            flex: 1;
+            min-width: 200px;
+            max-width: 320px;
+            position: relative;
+        }
+        .toolbar-search input[type="text"] {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.55rem 0.9rem 0.55rem 2.2rem;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .toolbar-search input:focus { border-color: var(--amber); }
+        .toolbar-search input::placeholder { color: var(--text-muted); }
+        .toolbar-search svg {
+            position: absolute;
+            left: 0.7rem;
+            top: 50%; transform: translateY(-50%);
+            color: var(--amber);
+            opacity: 0.7;
+            pointer-events: none;
+            flex-shrink: 0;
+        }
+        .toolbar-search input:focus ~ svg,
+        .toolbar-search:focus-within svg { opacity: 1; }
+        .toolbar-right { margin-left: auto; display: flex; gap: 0.6rem; }
+        .toolbar-select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.55rem 2rem 0.55rem 0.75rem;
+            color: var(--text-mid);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+            transition: border-color .2s, color .2s;
+            width: auto;
+            min-width: 110px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' viewBox='0 0 24 24' stroke='%236B6760' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.6rem center;
+        }
+        .toolbar-select:focus { border-color: var(--amber); color: var(--text); }
+        .toolbar-select option { background: var(--surface-2); color: var(--text); }
+
+        /* ── BUTTONS ────────────────────────────────────────── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 0.45rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem; font-weight: 600;
+            padding: 0.55rem 1rem;
+            border-radius: var(--radius-sm);
+            border: none; cursor: pointer;
+            transition: all .15s;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: var(--amber);
+            color: #0F0E0C;
+        }
+        .btn-primary:hover { background: var(--amber-dim); }
+        .btn-ghost {
+            background: var(--surface-2);
+            color: var(--text-mid);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover { border-color: var(--border-light); color: var(--text); }
+        .btn-danger {
+            background: var(--red-dim);
+            color: var(--red);
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+        .btn-danger:hover { background: rgba(239,68,68,0.2); }
+        .btn-icon {
+            padding: 0.45rem;
+            width: 32px; height: 32px;
+            justify-content: center;
+        }
+        .btn-sm { font-size: 0.75rem; padding: 0.35rem 0.7rem; }
+
+        /* ── TABLE ──────────────────────────────────────────── */
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead th {
+            background: var(--surface-2);
+            padding: 0.75rem 1rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        thead th:first-child { padding-left: 1.25rem; }
+        thead th:last-child { text-align: right; padding-right: 1.25rem; }
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background .1s;
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--surface-2); }
+        td {
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+            vertical-align: middle;
+        }
+        td:first-child { padding-left: 1.25rem; }
+        td:last-child { text-align: right; padding-right: 1.25rem; }
+        .td-actions { display: flex; gap: 0.4rem; justify-content: flex-end; }
+
+        /* Product thumb in table */
+        .product-thumb {
+            width: 44px; height: 44px;
+            border-radius: var(--radius-sm);
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            object-fit: cover;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .product-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .product-thumb svg { opacity: 0.35; }
+        .product-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .product-name-text { font-weight: 600; }
+        .product-desc-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.1rem;
+            max-width: 260px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.6rem;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        .badge-green { background: var(--green-dim); color: var(--green); }
+        .badge-red { background: var(--red-dim); color: var(--red); }
+        .badge-amber { background: var(--amber-glow); color: var(--amber); }
+        .badge-gray { background: var(--surface-3); color: var(--text-muted); }
+
+        /* Toggle switch */
+        .toggle-wrap {
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .toggle {
+            position: relative;
+            width: 36px; height: 20px;
+        }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--surface-3);
+            border-radius: 99px;
+            cursor: pointer;
+            transition: .2s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 14px; height: 14px;
+            left: 3px; bottom: 3px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: .2s;
+        }
+        .toggle input:checked + .toggle-slider { background: var(--amber); }
+        .toggle input:checked + .toggle-slider::before {
+            background: white;
+            transform: translateX(16px);
+        }
+
+        /* Empty state */
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .empty-state svg { opacity: 0.3; margin-bottom: 1rem; }
+        .empty-state p { font-size: 0.9rem; }
+
+        /* Loading state */
+        .loading-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+        }
+        .spinner {
+            width: 24px; height: 24px;
+            border: 2.5px solid var(--border-light);
+            border-top-color: var(--amber);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── MODAL ──────────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.72);
+            backdrop-filter: blur(6px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+        }
+        .modal-overlay.open { display: flex; }
+
+        /* Modal base: flex column, altura fija — NUNCA scrollea el modal completo */
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 560px;
+            max-height: min(88vh, 760px);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.04);
+            overflow: hidden;
+        }
+        .modal-lg { max-width: 680px; }
+
+        /* Header fijo arriba */
+        .modal-header {
+            padding: 1.4rem 1.75rem 1rem;
+            display: flex; align-items: flex-start; justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--surface);
+        }
+        .modal-header-left { display: flex; flex-direction: column; gap: 0.2rem; }
+        .modal-title {
+            font-family: 'Fraunces', serif;
+            font-weight: 900;
+            font-size: 1.25rem;
+            letter-spacing: -0.025em;
+            color: var(--text);
+            line-height: 1.1;
+        }
+        .modal-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .modal-close {
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            color: var(--text-mid);
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .15s;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+        .modal-close:hover { background: var(--border-light); color: var(--text); border-color: var(--border-light); }
+
+        /* Body: el UNICO que scrollea */
+        .modal-body {
+            padding: 1.5rem 1.75rem;
+            overflow-y: auto;
+            flex: 1;
+            overscroll-behavior: contain;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-light) transparent;
+        }
+        .modal-body::-webkit-scrollbar { width: 5px; }
+        .modal-body::-webkit-scrollbar-track { background: transparent; }
+        .modal-body::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 99px;
+        }
+        .modal-body::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* Footer fijo abajo */
+        .modal-footer {
+            padding: 1rem 1.75rem;
+            display: flex; gap: 0.75rem; justify-content: flex-end;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--surface);
+        }
+
+        /* Secciones dentro del form del modal producto */
+        .form-section { margin-bottom: 1.5rem; }
+        .form-section:last-child { margin-bottom: 0; }
+        .form-section-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--amber);
+            margin-bottom: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .form-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── FORM ELEMENTS ──────────────────────────────────── */
+        .form-grid { display: grid; gap: 1rem; }
+        .form-grid-2 { grid-template-columns: 1fr 1fr; }
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .form-group.span-2 { grid-column: span 2; }
+        label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-mid);
+            letter-spacing: 0.02em;
+        }
+        label .required { color: var(--amber); margin-left: 2px; }
+        input[type="text"],
+        input[type="number"],
+        input[type="url"],
+        textarea,
+        select {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.6rem 0.85rem;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color .2s;
+            width: 100%;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--amber); }
+        input::placeholder, textarea::placeholder { color: var(--text-muted); }
+        select option { background: var(--surface-2); }
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* Image upload area */
+        .img-upload-wrap {
+            position: relative;
+        }
+        .img-upload-area {
+            border: 1.5px dashed var(--border-light);
+            border-radius: var(--radius);
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            background: var(--surface-2);
+        }
+        .img-upload-area:hover { border-color: var(--amber); background: var(--amber-glow); }
+        .img-upload-area.has-image {
+            border-style: solid;
+            border-color: var(--amber);
+            padding: 0.5rem;
+        }
+        .img-upload-area p { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; }
+        .img-upload-area strong { color: var(--text); font-size: 0.85rem; }
+        .img-preview {
+            width: 100%; height: 200px;
+            object-fit: contain;
+            border-radius: var(--radius-sm);
+        }
+        .img-upload-input { display: none; }
+        .img-actions {
+            display: flex; gap: 0.5rem; margin-top: 0.5rem; justify-content: flex-end;
+        }
+        .img-uploading {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.8rem; color: var(--text-muted);
+            justify-content: center; padding: 0.5rem;
+        }
+
+        /* URL input con preview */
+        .url-preview-wrap { position: relative; }
+        .url-thumb {
+            width: 40px; height: 40px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        /* ── CONSULTAS ──────────────────────────────────────── */
+        .consulta-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            gap: 1.25rem;
+            align-items: flex-start;
+            transition: border-color .15s;
+        }
+        .consulta-card.unread {
+            border-left: 3px solid var(--amber);
+        }
+        .consulta-avatar {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: var(--amber-glow);
+            border: 1px solid rgba(232,146,10,0.2);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--amber);
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .consulta-name {
+            font-weight: 600; font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+        .consulta-msg {
+            font-size: 0.85rem;
+            color: var(--text-mid);
+            line-height: 1.5;
+        }
+        .consulta-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+        }
+        .consulta-actions { margin-left: auto; display: flex; gap: 0.4rem; align-items: flex-start; flex-shrink: 0; }
+
+        /* ── TOAST ──────────────────────────────────────────── */
+        .toast-container {
+            position: fixed; bottom: 1.5rem; right: 1.5rem;
+            z-index: 200;
+            display: flex; flex-direction: column; gap: 0.5rem;
+        }
+        .toast {
+            background: var(--surface-3);
+            border: 1px solid var(--border-light);
+            border-left: 3px solid var(--green);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1.1rem;
+            font-size: 0.82rem;
+            color: var(--text);
+            box-shadow: var(--shadow);
+            animation: slideIn .2s ease;
+            max-width: 300px;
+        }
+        .toast.error { border-left-color: var(--red); }
+        .toast.warn { border-left-color: var(--amber); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(12px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── CONFIRM DIALOG ─────────────────────────────────── */
+        .confirm-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 300;
+            display: none; align-items: center; justify-content: center;
+        }
+        .confirm-overlay.open { display: flex; }
+        .confirm-box {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 380px; width: 90%;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+            text-align: center;
+        }
+        .confirm-icon {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: var(--red-dim);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+            color: var(--red);
+        }
+        .confirm-title { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .confirm-desc { font-size: 0.85rem; color: var(--text-mid); margin-bottom: 1.5rem; }
+        .confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
+
+        /* ── SECTION HEADER ─────────────────────────────────── */
+        .section-header {
+            display: flex; align-items: flex-end; justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: var(--text);
+        }
+        .section-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        /* ── RESPONSIVE ─────────────────────────────────────── */
+        @media (max-width: 1100px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 240px !important;
+                transform: translateX(-100%);
+                transition: transform .25s;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-toggle-btn { display: none; }
+            .main-wrap { margin-left: 0 !important; }
+            body.sidebar-collapsed .main-wrap { margin-left: 0 !important; }
+            .sidebar-backdrop { 
+                display: none;
+                position: fixed; inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 39;
+            }
+            .sidebar-backdrop.open { display: block; }
+            .mobile-menu-btn { display: flex !important; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .toolbar { gap: 0.5rem; }
+            .toolbar-select { min-width: 90px; font-size: 0.78rem; }
+        }
+        @media (max-width: 700px) {
+            .toolbar { flex-wrap: wrap; }
+            .toolbar-search { max-width: 100%; min-width: 0; flex: 1 1 100%; order: -1; }
+            .toolbar-select { flex: 1; min-width: 0; }
+            .toolbar-right { flex: 1 1 100%; }
+            .toolbar-right select { width: 100%; }
+            thead th:nth-child(4),
+            td:nth-child(4),
+            thead th:nth-child(6),
+            td:nth-child(6) { display: none; }
+        }
+        @media (max-width: 600px) {
+            .form-grid-2 { grid-template-columns: 1fr; }
+            .form-group.span-2 { grid-column: span 1; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .page-content { padding: 1rem; }
+            .topbar { padding: 0 1rem; }
+            .section-title { font-size: 1.2rem; }
+            thead th:nth-child(3),
+            td:nth-child(3) { display: none; }
+        }
+        @media (max-width: 420px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .page-content { padding: 0.75rem; }
+            .modal { border-radius: 10px; }
+        }
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            padding: 0.3rem;
+        }
+
+        /* Inline filter tabs */
+        .filter-tabs {
+            display: flex; gap: 0.4rem; flex-wrap: wrap;
+            margin-bottom: 1.25rem;
+        }
+        .filter-tab {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            padding: 0.3rem 0.85rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-mid);
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .filter-tab:hover { border-color: var(--border-light); color: var(--text); }
+        .filter-tab.active { background: var(--amber-glow); border-color: rgba(232,146,10,0.3); color: var(--amber); }
+    </style>
+</head>
+<body>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <a href="index.html">
+            <img class="logo-img" src="https://res.cloudinary.com/dloroyhev/image/upload/f_auto,q_auto,w_800/v1781828885/xzeljnj7dqfhnwajvrtj.png" alt="Marchese Golosinas">
+        </a>
+        <div class="admin-pill">
+            <div class="admin-pill-dot"></div>
+            Panel Admin
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Principal</span>
+        <button class="nav-btn active" data-section="productos">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v14m0-14L4 7m0 0v10l8 4"/>
+            </svg>
+            <span class="nav-btn-label">Productos</span>
+        </button>
+        <button class="nav-btn" data-section="categorias">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+            </svg>
+            <span class="nav-btn-label">Categorías</span>
+        </button>
+        <button class="nav-btn" data-section="marcas">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"/>
+                <path stroke-linecap="round" d="M9 12l2 2 4-4"/>
+            </svg>
+            <span class="nav-btn-label">Marcas</span>
+        </button>
+        <button class="nav-btn" data-section="banners">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="5" width="18" height="14" rx="2"/>
+                <path stroke-linecap="round" d="M3 10h18"/>
+            </svg>
+            <span class="nav-btn-label">Banners</span>
+        </button>
+
+        <span class="nav-section-label">Actividad</span>
+        <button class="nav-btn" data-section="consultas">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <span class="nav-btn-label">Consultas</span>
+            <span class="nav-badge" id="consultasBadge" style="display:none">0</span>
+        </button>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div id="adminUserEmail" class="sidebar-footer-label" style="
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            padding: 0 0.5rem 0.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        "></div>
+        <button class="nav-btn" id="btnLogout" title="Cerrar sesión" style="color: var(--red); margin-bottom: 0.25rem;">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+            </svg>
+            <span class="sidebar-footer-label">Cerrar sesión</span>
+        </button>
+        <button class="nav-btn" id="sidebarToggleBtn" title="Contraer menú">
+            <svg class="toggle-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+            <span class="sidebar-footer-label">Contraer panel</span>
+        </button>
+    </div>
+</aside>
+
+<div class="main-wrap">
+
+    <header class="topbar">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <span class="topbar-title" id="topbarTitle">Productos</span>
+        </div>
+        <div class="topbar-actions">
+            <a href="index.html" target="_blank" class="btn btn-ghost btn-sm">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+                Ver sitio
+            </a>
+        </div>
+    </header>
+
+    <div class="page-content">
+
+        <section class="section-panel active" id="panel-productos">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Productos</h1>
+                    <p class="section-sub" id="productosCount">Cargando…</p>
+                </div>
+                <button class="btn btn-primary" id="btnNuevoProducto">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nuevo producto
+                </button>
+            </div>
+
+            <div class="toolbar">
+                <div class="toolbar-search">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="productosSearch" placeholder="Buscar por nombre…">
+                </div>
+                <select id="productosFilterMarca" class="toolbar-select">
+                    <option value="">Marca</option>
+                </select>
+                <select id="productosFilterCategoria" class="toolbar-select">
+                    <option value="">Categoría</option>
+                </select>
+                <div class="toolbar-right">
+                    <select id="productosFilterTag" class="toolbar-select">
+                        <option value="">Tag</option>
+                        <option value="Nuevo">Nuevo</option>
+                        <option value="Oferta">Oferta</option>
+                        <option value="Remate">Remate</option>
+                        <option value="Importados">Importados</option>
+                        <option value="Destacado">Destacado</option>
+                        <option value="Liquidación">Liquidación</option>
+                        <option value="Últimas novedades">Últimas novedades</option>
+                    </select>
+                    <select id="productosFilterActive" style="width:auto; padding: 0.55rem 0.75rem;">
+                        <option value="">Todos los estados</option>
+                        <option value="active">Activos</option>
+                        <option value="inactive">Inactivos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Marca</th>
+                            <th>Tag</th>
+                            <th>Estado</th>
+                            <th>Orden</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productosTableBody">
+                        <tr><td colspan="7"><div class="loading-state"><div class="spinner"></div><span>Cargando productos…</span></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="section-panel" id="panel-categorias">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Categorías</h1>
+                    <p class="section-sub" id="categoriasCount">Cargando…</p>
+                </div>
+                <button class="btn btn-primary" id="btnNuevaCategoria">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nueva categoría
+                </button>
+            </div>
+
+            <div class="toolbar">
+                <div class="toolbar-search">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="categoriasSearch" placeholder="Buscar categoría…">
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Orden</th>
+                            <th>Productos</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categoriasTableBody">
+                        <tr><td colspan="5"><div class="loading-state"><div class="spinner"></div><span>Cargando categorías…</span></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="section-panel" id="panel-marcas">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Marcas</h1>
+                    <p class="section-sub" id="marcasCount">Cargando…</p>
+                </div>
+                <button class="btn btn-primary" id="btnNuevaMarca">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nueva marca
+                </button>
+            </div>
+
+            <div class="toolbar">
+                <div class="toolbar-search">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="marcasSearch" placeholder="Buscar marca…">
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Orden</th>
+                            <th>Productos</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marcasTableBody">
+                        <tr><td colspan="5"><div class="loading-state"><div class="spinner"></div><span>Cargando marcas…</span></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="section-panel" id="panel-consultas">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Consultas</h1>
+                    <p class="section-sub" id="consultasCount">Cargando…</p>
+                </div>
+                <button class="btn btn-ghost btn-sm" id="btnMarcarTodasLeidas">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                    </svg>
+                    Marcar todo leído
+                </button>
+            </div>
+
+            <div class="filter-tabs" id="consultasFilterTabs">
+                <button class="filter-tab active" data-filter="all">Todas</button>
+                <button class="filter-tab" data-filter="unread">Sin leer</button>
+                <button class="filter-tab" data-filter="read">Leídas</button>
+            </div>
+
+            <div id="consultasList">
+                <div class="loading-state"><div class="spinner"></div><span>Cargando consultas…</span></div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════
+             SECCIÓN: BANNERS
+        ════════════════════════════════════════════════════ -->
+        <section class="section-panel" id="panel-banners">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Banners publicitarios</h1>
+                    <p class="section-sub" id="bannersCount">Cargando…</p>
+                </div>
+                <button class="btn btn-primary" id="btnNuevoBanner">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nuevo banner
+                </button>
+            </div>
+
+            <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1.25rem;">
+                Las imágenes que subas acá aparecen en el carrusel del inicio del sitio. Se muestran en el orden que indiques. Solo los banners activos son visibles en el sitio.
+            </p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Título / Nota</th>
+                            <th>Orden</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bannersTableBody">
+                        <tr><td colspan="5"><div class="loading-state"><div class="spinner"></div><span>Cargando banners…</span></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div></div><div class="modal-overlay" id="modalProducto">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <h2 class="modal-title" id="modalProductoTitle">Nuevo producto</h2>
+                <span class="modal-subtitle">Completá los campos y guardá para publicar en el catálogo</span>
+            </div>
+            <button class="modal-close" data-close="modalProducto" aria-label="Cerrar">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="modal-body">
+
+            <!-- SECCIÓN: Información principal -->
+            <div class="form-section">
+                <div class="form-section-title">Información principal</div>
+                <div class="form-grid form-grid-2">
+                    <div class="form-group span-2">
+                        <label>Nombre <span class="required">*</span></label>
+                        <input type="text" id="p-name" placeholder="Ej: Alfajor Triple Chocolate">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría <span class="required">*</span></label>
+                        <select id="p-category">
+                            <option value="">Seleccionar…</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Marca</label>
+                        <select id="p-brand">
+                            <option value="">Sin marca</option>
+                        </select>
+                    </div>
+                    <div class="form-group span-2">
+                        <label>Descripción</label>
+                        <textarea id="p-description" rows="2" placeholder="Descripción breve del producto…"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: Imagen -->
+            <div class="form-section">
+                <div class="form-section-title">Imagen</div>
+                <div class="form-group">
+                    <div class="img-upload-area" id="imgUploadArea">
+                        <div id="imgUploadPlaceholder">
+                            <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted); margin:0 auto 0.5rem; display:block;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <strong>Hacé clic para subir</strong>
+                            <p>o arrastrá una imagen · JPG, PNG, WEBP · máx 5MB</p>
+                        </div>
+                        <div id="imgUploadingState" class="img-uploading" style="display:none">
+                            <div class="spinner"></div>
+                            <span>Subiendo a Cloudinary…</span>
+                        </div>
+                        <img id="imgPreview" class="img-preview" style="display:none" alt="Vista previa">
+                    </div>
+                    <input type="file" id="imgFileInput" class="img-upload-input" accept="image/*">
+                    <div class="img-actions" id="imgActions" style="display:none">
+                        <button class="btn btn-ghost btn-sm" id="btnChangeImg">Cambiar imagen</button>
+                        <button class="btn btn-danger btn-sm" id="btnRemoveImg">Quitar imagen</button>
+                    </div>
+                    <div style="margin-top:0.75rem;">
+                        <label style="font-size:0.72rem; color:var(--text-muted);">O pegá una URL de imagen directamente</label>
+                        <input type="url" id="p-image-url" placeholder="https://res.cloudinary.com/…" style="margin-top:0.3rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: Etiqueta y publicación -->
+            <div class="form-section">
+                <div class="form-section-title">Etiqueta y publicación</div>
+                <div class="form-grid form-grid-2">
+                    <div class="form-group">
+                        <label>Tag / Etiqueta</label>
+                        <select id="p-tag">
+                            <option value="">Sin etiqueta</option>
+                            <option value="Nuevo">🆕 Nuevo</option>
+                            <option value="Importado">✈️ Importado</option>
+                            <option value="Oferta">🏷️ Oferta</option>
+                            <option value="Destacado">⭐ Destacado</option>
+                            <option value="Liquidación">💥 Liquidación</option>
+                            <option value="Ultimas Unidades">⚡ Ultimas Unidades</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Orden</label>
+                        <input type="number" id="p-order" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <div class="toggle-wrap" style="margin-top:0.35rem;">
+                            <label class="toggle">
+                                <input type="checkbox" id="p-active" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span style="font-size:0.85rem; color:var(--text-mid);" id="p-active-label">Activo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /modal-body -->
+
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-close="modalProducto">Cancelar</button>
+            <button class="btn btn-primary" id="btnGuardarProducto">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                Guardar producto
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalCategoria">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <h2 class="modal-title" id="modalCategoriaTitle">Nueva categoría</h2>
+            </div>
+            <button class="modal-close" data-close="modalCategoria" aria-label="Cerrar">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nombre <span class="required">*</span></label>
+                    <input type="text" id="c-name" placeholder="Ej: Alfajores">
+                </div>
+                <div class="form-group">
+                    <label>Orden</label>
+                    <input type="number" id="c-order" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <div class="toggle-wrap" style="margin-top:0.35rem;">
+                        <label class="toggle">
+                            <input type="checkbox" id="c-active" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span style="font-size:0.85rem; color:var(--text-mid);" id="c-active-label">Activa</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-close="modalCategoria">Cancelar</button>
+            <button class="btn btn-primary" id="btnGuardarCategoria">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                Guardar
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalMarca">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <h2 class="modal-title" id="modalMarcaTitle">Nueva marca</h2>
+            </div>
+            <button class="modal-close" data-close="modalMarca" aria-label="Cerrar">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nombre <span class="required">*</span></label>
+                    <input type="text" id="m-name" placeholder="Ej: Florestal">
+                </div>
+                <div class="form-group">
+                    <label>Orden</label>
+                    <input type="number" id="m-order" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <div class="toggle-wrap" style="margin-top:0.35rem;">
+                        <label class="toggle">
+                            <input type="checkbox" id="m-active" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span style="font-size:0.85rem; color:var(--text-mid);" id="m-active-label">Activa</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-close="modalMarca">Cancelar</button>
+            <button class="btn btn-primary" id="btnGuardarMarca">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                Guardar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL: BANNER
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalBanner">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <h2 class="modal-title" id="modalBannerTitle">Nuevo banner</h2>
+                <span class="modal-subtitle">Solo se muestran los banners activos en el carrusel</span>
+            </div>
+            <button class="modal-close" data-close="modalBanner" aria-label="Cerrar">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-grid">
+                <div class="form-group span-2">
+                    <label>Imagen <span class="required">*</span></label>
+                    <div class="img-upload-area" id="bannerImgUploadArea">
+                        <div id="bannerImgUploadPlaceholder">
+                            <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted); margin:0 auto 0.5rem; display:block;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <strong>Hacé clic para subir</strong>
+                            <p>JPG, PNG, WEBP · máx 5MB · proporción recomendada 4:3</p>
+                        </div>
+                        <div id="bannerImgUploadingState" class="img-uploading" style="display:none">
+                            <div class="spinner"></div>
+                            <span>Subiendo a Cloudinary…</span>
+                        </div>
+                        <img id="bannerImgPreview" class="img-preview" style="display:none" alt="Vista previa">
+                    </div>
+                    <input type="file" id="bannerImgFileInput" class="img-upload-input" accept="image/*">
+                    <div class="img-actions" id="bannerImgActions" style="display:none">
+                        <button class="btn btn-ghost btn-sm" id="btnChangeBannerImg">Cambiar imagen</button>
+                        <button class="btn btn-danger btn-sm" id="btnRemoveBannerImg">Quitar imagen</button>
+                    </div>
+                    <div style="margin-top:0.75rem;">
+                        <label style="font-size:0.72rem; color:var(--text-muted);">O pegá una URL de imagen directamente</label>
+                        <input type="url" id="bn-image-url" placeholder="https://res.cloudinary.com/…" style="margin-top:0.3rem;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Título / Nota interna</label>
+                    <input type="text" id="bn-title" placeholder="Ej: Promo mayo, Liquidación…">
+                    <span style="font-size:0.7rem; color:var(--text-muted); margin-top:0.2rem; display:block;">Solo visible en el admin, no se muestra en el sitio.</span>
+                </div>
+                <div class="form-group">
+                    <label>Orden</label>
+                    <input type="number" id="bn-order" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <div class="toggle-wrap" style="margin-top:0.35rem;">
+                        <label class="toggle">
+                            <input type="checkbox" id="bn-active" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span style="font-size:0.85rem; color:var(--text-mid);" id="bn-active-label">Activo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-close="modalBanner">Cancelar</button>
+            <button class="btn btn-primary" id="btnGuardarBanner">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                Guardar banner
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+        <div class="confirm-icon">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+        </div>
+        <div class="confirm-title" id="confirmTitle">¿Eliminar?</div>
+        <p class="confirm-desc" id="confirmDesc">Esta acción no se puede deshacer.</p>
+        <div class="confirm-actions">
+            <button class="btn btn-ghost" id="confirmCancel">Cancelar</button>
+            <button class="btn btn-danger" id="confirmOk">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>
