@@ -119,11 +119,12 @@ const confirmDesc    = document.getElementById("confirmDesc");
 const confirmOk      = document.getElementById("confirmOk");
 const confirmCancel  = document.getElementById("confirmCancel");
 
-function confirm(title, desc = "Esta acción no se puede deshacer.") {
+function confirm(title, desc = "Esta acción no se puede deshacer.", okLabel = "Eliminar") {
   return new Promise((resolve) => {
     _confirmResolve = resolve;
     confirmTitle.textContent = title;
     confirmDesc.textContent  = desc;
+    confirmOk.textContent    = okLabel;
     confirmOverlay.classList.add("open");
     lockBodyScroll();
   });
@@ -184,7 +185,7 @@ document.querySelectorAll(".modal-overlay").forEach(overlay => {
 // CERRAR SESIÓN
 // ──────────────────────────────────────────────────────────
 document.getElementById("btnLogout")?.addEventListener("click", async () => {
-  const ok = await confirm("¿Cerrar sesión?", "Vas a salir del panel de administración.");
+  const ok = await confirm("¿Cerrar sesión?", "Vas a salir del panel de administración.", "Salir");
   if (!ok) return;
   try {
     await signOut(auth);
