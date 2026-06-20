@@ -477,7 +477,7 @@ function initListeners() {
 // ──────────────────────────────────────────────────────────
 
 function renderProductos() {
-  const tbody = document.getElementById("productosTableBody");
+  const grid = document.getElementById("productosGrid");
   let list = [...allProducts];
 
   // Filtro categoría
@@ -512,55 +512,77 @@ function renderProductos() {
     `${allProducts.length} productos · ${allProducts.filter(p => p.active !== false).length} activos`;
 
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7">
-      <div class="empty-state">
-        <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v14m0-14L4 7m0 0v10l8 4"/></svg>
-        <p>No se encontraron productos</p>
-      </div>
-    </td></tr>`;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v14m0-14L4 7m0 0v10l8 4"/></svg>
+      <p>No se encontraron productos</p>
+    </div>`;
     return;
   }
 
-  tbody.innerHTML = list.map(p => {
+  grid.innerHTML = list.map(p => {
     const isActive = p.active !== false;
-    const imgHtml = p.image
-      ? `<div class="product-thumb"><img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy"></div>`
-      : `<div class="product-thumb"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01"/></svg></div>`;
 
-    return `<tr>
-      <td>
-        <div class="product-name-cell">
-          ${imgHtml}
-          <div>
-            <div class="product-name-text">${esc(p.name)}</div>
-            ${p.description ? `<div class="product-desc-text">${esc(p.description)}</div>` : ""}
-          </div>
+    const imgSection = p.image
+      ? `<img class="prod-card-img" src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">`
+      : `<div class="prod-card-img-placeholder">
+           <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+             <path stroke-linecap="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+           </svg>
+         </div>`;
+
+    const categoryBadge = p.category
+      ? `<span class="badge badge-gray">${esc(p.category)}</span>`
+      : "";
+
+    const tagBadge = p.tag
+      ? `<span class="badge badge-amber">${esc(p.tag)}</span>`
+      : "";
+
+    const statusBadge = `<span class="badge ${isActive ? "badge-green" : "badge-red"}">${isActive ? "Activo" : "Inactivo"}</span>`;
+
+    const brandRow = p.brand
+      ? `<div class="prod-card-info-row">
+           <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M9 12l2 2 4-4"/></svg>
+           <span>${esc(p.brand)}</span>
+         </div>`
+      : "";
+
+    const toggleTitle = isActive ? "Desactivar" : "Activar";
+    const toggleIcon = isActive
+      ? `<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>`
+      : `<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+
+    return `<div class="prod-card${isActive ? "" : " inactive"}">
+      ${imgSection}
+      <div class="prod-card-body">
+        <div class="prod-card-header">
+          <div class="prod-card-name">${esc(p.name)}</div>
+          ${statusBadge}
         </div>
-      </td>
-      <td>${p.category ? `<span class="badge badge-gray">${esc(p.category)}</span>` : '<span style="color:var(--text-muted)">—</span>'}</td>
-      <td>${p.brand ? `<span style="font-size:0.82rem;color:var(--text-mid)">${esc(p.brand)}</span>` : '<span style="color:var(--text-muted)">—</span>'}</td>
-      <td>${p.tag ? `<span class="badge badge-amber">${esc(p.tag)}</span>` : '<span style="color:var(--text-muted)">—</span>'}</td>
-      <td><span class="badge ${isActive ? "badge-green" : "badge-red"}">${isActive ? "Activo" : "Inactivo"}</span></td>
-      <td style="color:var(--text-muted); font-size:0.82rem">${typeof p.order === "number" ? p.order : "—"}</td>
-      <td>
-        <div class="td-actions">
+        ${p.description ? `<div class="prod-card-desc">${esc(p.description)}</div>` : ""}
+        <div class="prod-card-meta">
+          ${categoryBadge}
+          ${tagBadge}
+        </div>
+        ${brandRow}
+      </div>
+      <div class="prod-card-footer">
+        <span class="prod-card-order">${typeof p.order === "number" ? `Orden: ${p.order}` : ""}</span>
+        <div class="prod-card-actions">
           <button class="btn btn-ghost btn-icon" title="Editar" onclick="editProducto('${p.id}')">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           </button>
-          <button class="btn btn-ghost btn-icon" title="${isActive ? 'Desactivar' : 'Activar'}" onclick="toggleProductoActive('${p.id}', ${isActive})">
+          <button class="btn btn-ghost btn-icon" title="${toggleTitle}" onclick="toggleProductoActive('${p.id}', ${isActive})">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              ${isActive
-                ? '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>'
-                : '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>'
-              }
+              ${toggleIcon}
             </svg>
           </button>
           <button class="btn btn-danger btn-icon" title="Eliminar" onclick="deleteProducto('${p.id}', '${esc(p.name)}')">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
         </div>
-      </td>
-    </tr>`;
+      </div>
+    </div>`;
   }).join("");
 }
 
@@ -1274,12 +1296,12 @@ function renderBanners() {
       </td>
       <td>
         <div class="row-actions">
-          <button class="btn btn-ghost btn-icon btn-sm" title="Editar" onclick="editBanner('${b.id}')">
+          <button class="btn btn-ghost btn-icon" title="Editar" onclick="editBanner('${b.id}')">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
             </svg>
           </button>
-          <button class="btn btn-danger btn-icon btn-sm" title="Eliminar" onclick="deleteBanner('${b.id}', '${esc(b.title || "este banner")}')">
+          <button class="btn btn-danger btn-icon" title="Eliminar" onclick="deleteBanner('${b.id}', '${esc(b.title || "este banner")}')">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
             </svg>
