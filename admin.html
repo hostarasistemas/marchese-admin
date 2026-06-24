@@ -870,6 +870,101 @@
             padding: 0.3rem;
         }
 
+        /* ── SETTINGS CARD ──────────────────────────────────── */
+        /* ── SETTINGS PAGE ──────────────────────────────────── */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+            max-width: 800px;
+        }
+        .settings-group-label h3 {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.3rem;
+        }
+        .settings-group-label p {
+            font-size: 0.77rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .settings-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .settings-field-row {
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+            padding: 1.25rem 1.5rem;
+        }
+        .settings-field-icon {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: var(--amber-glow);
+            border: 1px solid rgba(232,146,10,0.18);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--amber);
+            flex-shrink: 0;
+        }
+        .settings-field-content { flex: 1; min-width: 0; }
+        .settings-field-label {
+            font-size: 0.73rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 0.45rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .settings-input-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .settings-input-row input {
+            flex: 1;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 1rem;
+            font-family: 'DM Sans', monospace;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            padding: 0.6rem 0.9rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .settings-input-row input:focus { border-color: var(--amber); }
+        .settings-input-row input::placeholder {
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            letter-spacing: 0;
+        }
+        .settings-hint {
+            font-size: 0.73rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            line-height: 1.5;
+        }
+        .settings-hint strong { color: var(--text-mid); font-weight: 600; }
+        .settings-saved-badge {
+            display: none;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.5rem;
+            background: var(--green-dim);
+            border-top: 1px solid rgba(34,197,94,0.15);
+            font-size: 0.8rem;
+            color: var(--green);
+            font-weight: 500;
+        }
+
         /* ── PRODUCT CARDS GRID ─────────────────────────────── */
         .productos-grid {
             display: grid;
@@ -1047,6 +1142,15 @@
                 <path stroke-linecap="round" d="M3 10h18"/>
             </svg>
             <span class="nav-btn-label">Banners</span>
+        </button>
+
+        <span class="nav-section-label">Configuración</span>
+        <button class="nav-btn" data-section="configuracion">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span class="nav-btn-label">Configuración</span>
         </button>
 
         <span class="nav-section-label">Actividad</span>
@@ -1295,6 +1399,58 @@
                         <tr><td colspan="5"><div class="loading-state"><div class="spinner"></div><span>Cargando banners…</span></div></td></tr>
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════
+             SECCIÓN: CONFIGURACIÓN
+        ════════════════════════════════════════════════════ -->
+        <section class="section-panel" id="panel-configuracion">
+            <div class="section-header">
+                <div>
+                    <h2 style="font-family:'Fraunces',serif; font-size:1.15rem; font-weight:800; letter-spacing:-0.02em;">Configuración</h2>
+                </div>
+            </div>
+
+            <div class="settings-grid">
+                <!-- Label izquierdo -->
+                <div class="settings-group-label">
+                    <h3>WhatsApp de pedidos</h3>
+                    <p>Número al que se redirigen todos los pedidos del sitio. Se aplica en tiempo real.</p>
+                </div>
+
+                <!-- Card derecha -->
+                <div class="settings-card">
+                    <div class="settings-field-row">
+                        <div class="settings-field-icon">
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                        </div>
+                        <div class="settings-field-content">
+                            <div class="settings-field-label">Número de WhatsApp</div>
+                            <div class="settings-input-row">
+                                <input type="tel" id="cfg-whatsapp" placeholder="5493624123456" autocomplete="off" spellcheck="false">
+                                <button class="btn btn-primary" id="btnGuardarWhatsapp">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Guardar
+                                </button>
+                            </div>
+                            <div class="settings-hint">
+                                Código de país + área + número, sin espacios ni guiones.<br>
+                                Ej. Argentina: <strong>54 9 3624 123456</strong> → <strong>5493624123456</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-saved-badge" id="cfg-whatsapp-preview">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span id="cfg-whatsapp-preview-text"></span>
+                    </div>
+                </div>
             </div>
         </section>
 
