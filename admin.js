@@ -18,6 +18,8 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
+  setDoc,
   serverTimestamp,
   query,
   orderBy,
@@ -199,11 +201,12 @@ document.getElementById("btnLogout")?.addEventListener("click", async () => {
 // NAVEGACIÓN ENTRE SECCIONES
 // ──────────────────────────────────────────────────────────
 const SECTION_TITLES = {
-  productos:  "Productos",
-  categorias: "Categorías",
-  marcas:     "Marcas",
-  banners:    "Banners publicitarios",
-  consultas:  "Consultas",
+  productos:      "Productos",
+  categorias:     "Categorías",
+  marcas:         "Marcas",
+  banners:        "Banners publicitarios",
+  consultas:      "Consultas",
+  configuracion:  "Configuración",
 };
 
 function goTo(section) {
@@ -1404,3 +1407,63 @@ window.deleteBanner = async function(id, name) {
 // ──────────────────────────────────────────────────────────
 
 initListeners();
+// ──────────────────────────────────────────────────────────
+// CONFIGURACIÓN — Número de WhatsApp
+// Se guarda en Firestore en la colección "config", doc "general"
+// campo: whatsappNumber
+// ──────────────────────────────────────────────────────────
+
+const cfgDocRef = doc(db, "config", "general");
+
+async function loadWhatsappNumber() {
+  try {
+    const snap = await getDoc(cfgDocRef);
+    const number = snap.exists() ? (snap.data().whatsappNumber || "") : "";
+    const input = document.getElementById("cfg-whatsapp");
+    if (input && number) {
+      input.value = number;
+      showWhatsappPreview(number);
+    }
+  } catch (err) {
+    console.error("Error al cargar número WhatsApp:", err);
+  }
+}
+
+function showWhatsappPreview(number) {
+  const preview = document.getElementById("cfg-whatsapp-preview");
+  const previewText = document.getElementById("cfg-whatsapp-preview-text");
+  if (preview && previewText && number) {
+    previewText.textContent = `Número activo: +${number}`;
+    preview.style.display = "flex";
+  }
+}
+
+document.getElementById("btnGuardarWhatsapp")?.addEventListener("click", async () => {
+  const input = document.getElementById("cfg-whatsapp");
+  const number = input?.value.trim().replace(/\D/g, "");
+
+  if (!number || number.length < 10) {
+    toast("Ingresá un número válido (mínimo 10 dígitos)", "error");
+    return;
+  }
+
+  const btn = document.getElementById("btnGuardarWhatsapp");
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner" style="width:13px;height:13px;border-width:2px;"></div> Guardando…`;
+
+  try {
+    await setDoc(cfgDocRef, { whatsappNumber: number }, { merge: true });
+    input.value = number;
+    showWhatsappPreview(number);
+    toast("Número guardado correctamente");
+  } catch (err) {
+    console.error(err);
+    toast("Error al guardar el número", "error");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Guardar`;
+  }
+});
+
+// Cargar número al iniciar
+loadWhatsappNumber();
